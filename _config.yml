@@ -1,7 +1,7 @@
 # Site settings
 title: Lizhi Blog
 SEOTitle: 立志的博客 | Lizhi Blog
-header-img: img/home-bg.jpg
+header-img: img/home-bg-o.jpg
 email: lzwang1993@gmail.com
 description: "机会只留给有准备的人"
 url: "http://wanglizhi.github.io"              # your host, for absolute URL
@@ -30,7 +30,7 @@ anchorjs: true                          # if you want to customize anchor. check
 
 # Gems
 # from PR#40, to support local preview for Jekyll 3.0
-gems: [jekyll-paginate]
+# gems: [jekyll-paginate]
 
 
 
@@ -47,10 +47,6 @@ kramdown:
 # Disqus settings
 #disqus_username: _your_disqus_short_name_
 
-# Duoshuo settings
-duoshuo_username: huxblog
-# Share component is depend on Comment so we can NOT use share only.
-duoshuo_share: true                     # set to false if you want to use Comment without Sharing
 
 
 
