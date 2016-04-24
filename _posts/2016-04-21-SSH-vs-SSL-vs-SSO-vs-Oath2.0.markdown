@@ -169,6 +169,7 @@ service ssh restart
 远程主机将用户的公钥，保存在登录后的用户主目录的$HOME/.ssh/authorized_keys文件中。
 
 **参考** [SSH原理与运用（一）：远程登录](http://www.ruanyifeng.com/blog/2011/12/ssh_remote_login.html)
+
 [SSH原理与运用（二）：远程操作与端口转发](http://www.ruanyifeng.com/blog/2011/12/ssh_port_forwarding.html)
 
 ## SSO
@@ -209,7 +210,7 @@ CAS（Central Authentication Service）是耶鲁大学开发的单点登录（Si
 
 **参考** [CAS实现SSO单点登录原理](http://www.open-open.com/lib/view/open1432381488005.html)
 
-**拓展**[编写你自己的单点登录（SSO）服务](http://blog.csdn.net/javachannel/article/details/752437/)
+**拓展** [编写你自己的单点登录（SSO）服务](http://blog.csdn.net/javachannel/article/details/752437/)
 
 ## OAuth2.0
 
