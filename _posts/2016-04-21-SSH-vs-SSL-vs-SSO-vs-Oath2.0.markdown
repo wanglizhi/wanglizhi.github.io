@@ -186,6 +186,7 @@ service ssh restart
 #### 单点登陆的缺点
 
 - 单点故障。在使用单点登录时，所有应用程序使用一个集中的身份验证服务。当集中地身份验证服务发生故障时，将导致所有系统无法登录。
+
 #### 单点登陆的主要技术
 
 - Cookie：用户登录任意一个受信任的系统后，在当前系统的域名下写入登录令牌的Cookie。
@@ -207,6 +208,8 @@ CAS（Central Authentication Service）是耶鲁大学开发的单点登录（Si
 ![](http://static.open-open.com/lib/uploadImg/20150523/20150523193942_202.jpg)
 
 **参考** [CAS实现SSO单点登录原理](http://www.open-open.com/lib/view/open1432381488005.html)
+
+**拓展**[编写你自己的单点登录（SSO）服务](http://blog.csdn.net/javachannel/article/details/752437/)
 
 ## OAuth2.0
 
