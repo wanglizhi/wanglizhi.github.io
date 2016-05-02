@@ -1,6 +1,6 @@
 # Lizhi blog
 
-**说明：** 项目fork自[Hux-Blog 的 github](https://github.com/huxpro)
+我的博客地址：[wanglizhi.github.io](http://wanglizhi.github.io/)
 
 #### 关于写博客
 
@@ -8,3 +8,6 @@
 
 博客的内容主要是计算机软件相关技术的整理，俗话说`好记性不如烂笔头`，整理博客的过程就像是把书读薄的过程，通过总结让自己真正地掌握一些技能，一篇篇博客就像是学习收获的一颗颗硕果，没事看下心里也高兴呢~
 
+
+
+**说明：** 项目fork自[Hux-Blog 的 github](https://github.com/huxpro)
