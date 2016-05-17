@@ -2,7 +2,7 @@
 layout:     post
 title:      "字符编码常识及问题解析"
 subtitle:   "什么都略懂一点，生活更多彩一些~"
-date:       2016-05-17 12:00:00
+date:       2016-05-17 1:00:00
 author:     "Wanglizhi"
 header-img: "img/home-bg.jpg"
 catalog:    true
