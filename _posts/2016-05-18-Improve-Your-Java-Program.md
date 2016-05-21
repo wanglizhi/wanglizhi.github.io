@@ -750,7 +750,7 @@ p.setHome(new Person.Home("上海", "021"));
 ```java
 List l1 = new ArrayList();
 List l2 = new ArrayList(){};
-List l3 = new ArrayList(){{}};
+List l3 = new ArrayList(){ {} };
 boolean b1 = l1.getClass() == l2.getClass(); //false
 boolean b2 = l2.getClass() == l3.getClass(); //false
 boolean b3 = l1.getClass() == l3.getClass(); //false
@@ -765,7 +765,7 @@ class Sub extends ArrayList{
 List l2 = new Sub();
 ```
 
-`List l3 = new ArrayList(){{}}`，也是一个匿名类的定义，只是多了初始化块而已，起到构造函数的功能，其代码类似于：
+`List l3 = new ArrayList(){ {} }`，也是一个匿名类的定义，只是多了初始化块而已，起到构造函数的功能，其代码类似于：
 
 ```java
 class Sub extends ArrayList{
@@ -776,7 +776,7 @@ class Sub extends ArrayList{
 List l3 = new Sub();
 ```
 
-当然，一个类的初始化块可以有多个，所以`List l4 = new ArrayList(){{}{}{}{}{}};` 代码是没有问题的。
+当然，一个类的初始化块可以有多个，所以`List l4 = new ArrayList(){ {} {} {} {} {} };` 代码是没有问题的。
 
 匿名类虽然没有名字，但也是可以有构造函数的，虽然父类相同，但类还是不同的。
 
