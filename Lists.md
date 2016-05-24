@@ -4,43 +4,27 @@ title: "Reading"
 description: "悦读·又一年"
 header-img: "img/reading-bg.jpg"
 ---
-## Rule 
+## 书单
 
-* [W3C Editor's Draft](http://w3c.github.io/clreq/#glyphs_sizes_and_positions_in_character_faces_of_punctuation_marks) 中文排版  
-* [AQicn](http://aqicn.org/city/) PM2.5
-* [StateAir](http://stateair.net/) U.S. Department of State Air Quality Monitoring Program
+- 改善Java程序的151个建议
 
-## 一月书单
+- Java并发编程实战
 
-* 鸟哥的 Linux 私房菜
-* 程序员的思维修炼
-* 黑客与画家
-* 成功、动机与目标
-* 麦肯锡教我的写作武器
-* 植物的记忆与藏书乐
-* 寻找家园
-* 阅读的故事
+- Spring技术内幕
 
-至少读完其中 7 册 并附 4 篇笔记或书评
+- 深入分析Java Web技术内幕
 
-***
+- 大型网站系统与Java中间件实践
 
-## 二月书单
+- 深入理解Java虚拟机
 
-* 对伪心理学说不  
-* 软件随想录 
-* 中国古典诗词感发 
-* 用户体验的要素 
-* 金字塔原理 
-* 暗时间 
-* 麦肯锡教我的思考武器 
-* 禅与摩托车修理的艺术 
-* 星域（其它）
-  * 月亮看见了 
-  * 巨流河 
-  * 箭术与禅心 
-  * 一百个人的十年 
-  * 混序 
+- 深入Java虚拟机
 
+- Java性能权威指南
 
-至少读完其中 7 册 并附 4 篇笔记或书评
+  ​
+
+## Java Web
+
+[图解正向代理、反向代理、透明代理](http://z00w00.blog.51cto.com/515114/1031287) （正向代理代表客户端；反向代理代表服务器）
+
