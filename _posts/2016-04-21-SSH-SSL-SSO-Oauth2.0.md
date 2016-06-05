@@ -14,7 +14,6 @@ tags:
     - OAuth2.0
     - HTTPS
     - 名词理解
-
 ---
 
 > 本博客的第一篇文章，内容四处搜罗，水滴石穿，贵在坚持！
@@ -109,6 +108,8 @@ SSL协议采用公钥加密算法，客户端先向服务器端索要公钥，�
 接下来客户端和服务器使用http协议通信，使用“会话密钥”加密内容。
 
 **参考** [SSL/TLS协议运行机制的概述](http://www.ruanyifeng.com/blog/2014/02/ssl_tls.html)
+
+[Java SSL/TLS 安全通讯协议介绍](http://www.ibm.com/developerworks/cn/java/j-lo-ssltls/index.html)
 
 ## SSH
 
