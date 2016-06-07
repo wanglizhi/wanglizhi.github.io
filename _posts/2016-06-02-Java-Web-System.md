@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "Java大型网站架构"
-subtitle:   "Java应用架构，京东响应式亿级商品详情页，淘宝大秒系统"
+subtitle:   "了解Java应用架构，更好地写程序，以架构师为目标"
 date:       2016-06-02 1:00:00
 author:     "Wanglizhi"
 header-img: "img/home-bg.jpg"
@@ -9,119 +9,142 @@ catalog:    true
 tags:
 
     - Java Web
-    - 系统架构
+    - 软件架构
 ---
 
-## 深入理解Session与Cookie
+## Java应用架构的演化之路
 
-HTTP协议对Cookie数量和大小的限制问题？Session在多台服务器之间共享问题？Cookie被盗、Cookie伪造等安全问题？
+#### 不同系统不同语言之间的交互（HTTP）
+
+Web Service，建立在HTTP协议上实现异构系统通讯的工具。最早，使用CXF（Apache CXF 是一个开源的 Services 框架）开发SOAP服务实现Web Service，后面我们使用REST服务实现Web Service，例如Spring MVC框架可以实现REST服务。
+
+#### 不同系统相同语言之间的交互（RPC）
+
+常见的不同系统相同语言之间的交互用RPC（远程过程调用），或者RMI（远程方法调用）实现
+
+#### 单个产品的架构演进
+
+#### **1、初始阶段架构**
 
 ![](http://7xnovl.com1.z0.glb.clouddn.com/image/f/32/8ed4c512b2cd4802f0dae45b7443f.jpg)
 
-![](http://img.blog.csdn.net/20160309181454083)
+**特征：**应用程序、数据库、文件等所有资源都在一台服务器上
 
-#### 理解Cookie
+**描述：**通常服务器操作系统使用linux，应用程序使用PHP开发，部署到Apache上，数据库使用Mysql，汇集各种开源软件及一台廉价服务器。
 
-Cookie设计的目的是为了记录用户在一段时间内访问Web应用的行为路径。
+#### **2、应用服务和数据服务分离**
 
-###### Cookie属性项
+![](http://7xnovl.com1.z0.glb.clouddn.com/image/9/0a/fda481e179f563a8621daeeeefcb5.jpg)
 
-Cookie有两个版本：Version0和Version1。通过"Set-Cookie"和"Set-Cookie2"可以设置响应头标识。
+**特征：**应用程序、数据库、文件分别部署在独立的资源上
 
-- NAME=VALUE
-- Expires：过期时间
-- Domain：生成该Cookie的域名，如domain=“tabao.com”
-- Path：该Cookie是在当前哪个路径下生成的
-- Secure：如果设置了这个属性，只会在SSH连接时才会回传该Cookie
+**描述：**数据量增加，单台服务器性能及存储空间不足，需要将应用和数据分离，并发处理能力和数据存储空间得到改善
 
-###### Cookie如何工作
+#### **3、使用缓存改善性能**
 
-```java
-//创建Cookie
-String getCookie(Cookie[] cookies, String key){
-  if(cookies != null){
-    for(Cookie cookie : cookies){
-      if(cookie.getName().equals(key)){
-        return cookie.getValue();
-      }
-    }
-  }
-  return null;
-}
-@Override
-public void doGet(HttpServletRequest request, HttpServletResponse response)throws IOException, ServletException{
-  Cookie[] cookies = request.getCookies();
-  String userName = getCookie(cookies, "userName");
-  String userAge = getCookie(cookies, "userAge");
-  if(userName == null){
-    response.addCookie(new Cookie("userName", "junshan"));
-  }
-  if(userAge == null){
-    response.addCookie(new Cookie("userAge", "28"));
-  }
-  response.getHeaders("Set-Cookie");
-}
-```
+![](http://7xnovl.com1.z0.glb.clouddn.com/image/f/a5/82f3628134fa60f7a3e67039010bc.jpg)
 
-![](https://raw.githubusercontent.com/wanglizhi/wanglizhi.github.io/master/img/2016-06-01/set-cookie.png)
+**特征：**数据库中访问较为集中的一小部分数据存储在缓存服务器中，减少数据库的访问次数，降低数据库的访问压力。
 
-在构建HTTP返回字节流时是将Header中所有项顺序地写出，而没有进行任何修改。所以浏览器在接受HTTP协议返回的数据时是分别解析每一个Header项的
+**描述：**系统访问特点遵循二八定律，即80%的业务访问集中在20%的数据上。缓存分为本地缓存和远程缓存，本地缓存访问速度更快但缓存数量有限，同时存在与应用程序争用内存的情况。
 
-###### 使用Cookie的限制
+#### **4、使用应用服务器集群**
 
-Chrome，Cookie数限制50个每个域名，Cookie大小限制4097个字节
+![](http://7xnovl.com1.z0.glb.clouddn.com/image/c/40/c9cc50c2fcd299aeae97a05e4199a.jpg)
 
-#### 理解Session
+**特征：**多台服务器通过负载均衡同时向外部提供服务，解决单台服务器处理能力和存储空间上限的问题
 
-客户端每次和服务端交互时，只要传回一个ID，这个ID是客户端第一次访问时生成的唯一的。通常是NAME为JSESIONID的Cookie
+**描述：**使用集群是系统解决高并发、海量数据问题的常用手段。通过向集群中追加资源，提升系统的并发处理能力，使得服务器的负载压力不再成为系统瓶颈
 
-有三种方式可以让Session正常工作：
+####**5、数据库读写分离**
 
-- 基于URL Path Parameter 默认支持
-- 基于Cookie，如果没有修改Context容器的cookies标识，默认也是支持的
-- 基于SSL，默认不支持，只有connector.getAttribute("SSLEnabled")为TRUE时才支持
+![](http://7xnovl.com1.z0.glb.clouddn.com/image/5/b8/4a978165686f6df6c8193b41814cf.jpg)
 
-Session工作时序图
+**特征：**多态服务器通过负载均衡同时向外部提供服务，解决单台服务器处理能力和存储空间上限问题
 
-![](https://raw.githubusercontent.com/wanglizhi/wanglizhi.github.io/master/img/2016-06-01/session.png)
+**描述：**使用集群是系统解决高并发、海量数据问题的常用手段。通过向集群中追加资源，使得服务器的负载压力不在成为整个系统的瓶颈。
 
-#### Cookie安全问题
+#### **6、反向代理和CDN加速**
 
-Cookie值在浏览器端可以被查看、添加、修改，所以安全性存在很大问题
+![](http://7xnovl.com1.z0.glb.clouddn.com/image/7/84/4dfa1b25bcb78d207344c0dd3f212.jpg)
 
-而Session将数据保存在服务端，只是通过Cookie传递一个SessionID而已，所以Session更适合存储用户隐私和重要的数据。
+**特征：**采用CDN和反向代理加快系统的 访问速度。
 
-#### 分布式Session框架
+**描述：**为了应付复杂的网络环境和不同地区用户的访问，通过CDN和反向代理加快用户访问的速度，同时减轻后端服务器的负载压力。CDN与反向代理的基本原理都是**缓存**。
 
-分布式Session框架可以解决的问题：
+#### **7、分布式文件系统和分布式数据库**
 
-- Session配置的统一管理
-- Cookie使用的监控和统一规范管理
-- Session配置的动态修改
-- Session加密key的定期修改
-- 充分的容灾机制，保持框架的使用稳定性
-- Session各种存储的监控和报警支持
-- Session框架的可扩展性
-- 跨域名Session与Cookie如何共享
+![](http://7xnovl.com1.z0.glb.clouddn.com/image/2/ad/fddd352d904ce267ea5d9a7c2de1a.jpg)
 
-分布式Session框架架构图
+**特征：**数据库采用分布式数据库，文件系统采用分布式文件系统。
 
-![](https://raw.githubusercontent.com/wanglizhi/wanglizhi.github.io/master/img/2016-06-01/distribute-session.png)
+**描述：**任何强大的单一服务器都满足不了大型系统持续增长的业务需求，数据库读写分离随着业务的发展最终也将无法满足需求，需要使用分布式数据库及分布式文件系统来支撑。分布式数据库是系统数据库拆分的最后方法，只有在单表数据规模非常庞大的时候才使用，更常用的数据库拆分手段是业务分库，将不同的业务数据库部署在不同的物理服务器上。
 
-统一通过订阅服务器推送配置可以有效地集中管理资源，省去每个应用都来配置Cookie，简化Cookie管理。
+####**8、使用NoSQL和搜索引擎**
 
-由于应用是一个集群，所以要共享这些Session必须将它们存储在一个分布式缓存中，可以随着写入和读取，而且性能要很好。如MEMCache或者淘宝的开源分布式缓存系统Tair。
+![](http://7xnovl.com1.z0.glb.clouddn.com/image/e/42/99e476963d18d17111f2a6440903c.jpg)
 
-#### 表单重复提交问题
+**特征：**系统引入NoSQL数据库及搜索引擎。
 
-要防止表单重复提交，就要标识用户的每一次访问请求，使得每一次访问对服务端来说都是唯一确定的。为了标识用户的每一次访问请求，可以在用户请求一个表单域时增加一个隐藏表单项，每次都是唯一的token
+**描述：**随着业务越来越复杂，对数据存储和检索的需求也越来越复杂，系统需要采用一些非关系型数据库如NoSQL和分数据库查询技术如搜索引擎。应用服务器通过统一数据访问模块访问各种数据，减轻应用程序管理诸多数据源的麻烦。
 
-![](https://raw.githubusercontent.com/wanglizhi/wanglizhi.github.io/master/img/2016-06-01/token.png)
+####**9、业务拆分**
+
+![](http://7xnovl.com1.z0.glb.clouddn.com/image/3/3d/f595ecf21cc1951ba637139328d85.jpg)
+
+**特征：**系统上按照业务进行拆分改造，应用服务器按照业务区分进行分别部署。
+
+**描述：**为了应对日益复杂的业务场景，通常使用分而治之的手段将整个系统业务分成不同的产品线，应用之间通过超链接建立关系，也可以通过消息队列进行数据分发，当然更多的还是通过访问同一个数据存储系统来构成一个关联的完整系统。**纵向拆分：**将一个大应用拆分为多个小应用，如果新业务较为独立，那么就直接将其设计部署为一个独立的Web应用系统纵向拆分相对较为简单，通过梳理业务，将较少相关的业务剥离即可。**横向拆分：**将复用的业务拆分出来，独立部署为分布式服务，新增业务只需要调用这些分布式服务横向拆分需要识别可复用的业务，设计服务接口，规范服务依赖关系。
+
+#### **10、分布式服务**
+
+![](http://7xnovl.com1.z0.glb.clouddn.com/image/3/bf/00e53d51bfab15bd00a7c98de2369.jpg)
+
+**特征：**公共的应用模块被提取出来，部署在分布式服务器上供应用服务器调用。
+
+**描述：**随着业务越拆越小，应用系统整体复杂程度呈指数级上升，由于所有应用要和所有数据库系统连接，最终导致数据库连接资源不足，拒绝服务。
+
+#### 产品线的架构
+
+还有一种就是上面也有提到的业务拆分。现在我们需要做一个产品线，我们只需要一个数据层，一个通用业务逻辑层，前面还有各种应用和界面层,不需要对外部系统(外部公司的系统)提供服务的情况以前我们一般会选择用EJB等来构建分布式应用，但是现在我们可以使用dobbo、thrift、avro、hessian这类RPC框架来构建分布式应用实现不同应用和数据来源的交互。这种结构模式下我们需要对其他公司提供服务，可以专门写一个应用对外部系统提供rest服务。一般大多数互联网服务背后都要访问十几个甚至几百个内部服务，它们之间的通信方式一般都是RPC：就像访问一个远程方法那样，输入参数后等待返回结果。这对于构建复杂系统是最容易理解的方式。
+
+![](http://7xnovl.com1.z0.glb.clouddn.com/image/e/3d/dc7c597b29944c4e41dfb8b267041.png)
+
+参考：[大型网站技术架构 核心原理与案例分析](http://item.jd.com/11322972.html)
+
+[Java应用架构的演化之路](http://www.importnew.com/19376.html)
+
+扩展：[淘宝大秒系统设计详解](http://geek.csdn.net/news/detail/59847)
+
+[构建需求响应式亿级商品详情页](http://www.importnew.com/19238.html)
 
 
 
 
 
-**参考** 深入分析Java Web技术内幕 第十章
 
-[深入理解Cookie和Session](http://my.oschina.net/kevinair/blog/192829)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
