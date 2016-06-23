@@ -1,8 +1,8 @@
 ---
 layout:     post
-title:      "Java集合框架总结"
+title:      "Java集合框架"
 subtitle:   "Java Collections Framework"
-date:       2016-06-22 1:00:00
+date:       2016-06-18 1:00:00
 author:     "Wanglizhi"
 header-img: "img/home-bg.jpg"
 catalog:    true
