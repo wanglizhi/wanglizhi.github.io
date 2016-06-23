@@ -110,6 +110,66 @@ Web Service，建立在HTTP协议上实现异构系统通讯的工具。最早�
 
 ![](http://7xnovl.com1.z0.glb.clouddn.com/image/e/3d/dc7c597b29944c4e41dfb8b267041.png)
 
+## 点评架构发展故事
+
+#### Dianping 1.0
+
+- 2003-2004
+- www.zsurvey.com
+- ASP
+- Access
+- 虚拟主机
+- 0.4万动态访问量/天
+
+#### Dianping 2.0
+
+- www.dianping.com
+- ASP.Net 1.1
+- SQL Server 7台服务器
+- 180万动态访问/天
+
+#### Dianping 3.0
+
+- ASP.Net 2.0/ 3.0/ 3.5
+- MySQL + Memcached
+- MogileFS
+- Lucence
+- Hippo
+
+#### Dianping 4.0
+
+- J2EE
+- RPC + MQ + ConfigServer + Monitor
+- Mysql + Mongo + Redis + Hive
+- Memcached
+- MogileFS
+- Lucence
+- 1亿+动态访问 / 天
+
+#### 分布式架构必须的基础设施
+
+点评决定一步到位，在平台迁移的同时完成架构重构，站在巨人的肩膀上，打造可伸缩的分布式系统架构，用一年的时间完成淘宝5年完成的工作。
+
+**分布式存储**
+
+- 分布式Cache
+- 分布式文件系统
+- 分布式RDBMS
+- 分布式NoSQL
+- 分布式大数据系统
+
+**分布式计算**
+
+RPC框架（Pigeon开源）
+
+MQ框架（Swallow开源）
+
+配置中心（Lion开源）
+
+性能监控（Cat开源）
+
+
+
 参考：[大型网站技术架构 核心原理与案例分析](http://item.jd.com/11322972.html)
 
 [Java应用架构的演化之路](http://www.importnew.com/19376.html)
