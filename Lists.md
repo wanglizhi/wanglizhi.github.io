@@ -28,6 +28,8 @@ header-img: "img/reading-bg.jpg"
 
 [图解正向代理、反向代理、透明代理](http://z00w00.blog.51cto.com/515114/1031287) （正向代理代表客户端；反向代理代表服务器）
 
+[短URL](http://blog.csdn.net/beiyeqingteng/article/details/7706010)
+
 [MVC，MVP，MVVM](http://www.ruanyifeng.com/blog/2015/02/mvcmvp_mvvm.html)
 
 [Servlet 工作原理解析](http://www.ibm.com/developerworks/cn/java/j-lo-servlet/)
