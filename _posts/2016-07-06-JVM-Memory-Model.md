@@ -16,7 +16,7 @@ tags:
 
 #### 运行时数据区域
 
-![](http://images.cnblogs.com/cnblogs_com/Cratical/201208/201208212311249241.png)
+![](http://dl.iteye.com/upload/picture/pic/115264/4991b17e-a8b4-3d0a-a316-4651bb23da5e.png)
 
 - **程序计数器：**较小的内存空间，指向当前线程所执行的字节码，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖这个计数器完成。同一时刻，一个处理器（多核处理器的一个内核）只会执行一条线程中的指令，各条线程之间的计数器互不影响，独立存储，这类内存成为`线程私有`的内存。如果线程正在执行Java方法，计数器记录的是正在执行的虚拟机字节码指令的地址；如果正在执行的是Native方法，这个计数器则为空（Undefined），程序计数器是唯一一个在JVM中没有规定OutOfMemoryError情况的区域。
 - **Java虚拟机栈：**VM Stack也是**线程私有**的，它的生命周期与线程相同。虚拟机栈描述Java方法执行的内存模型：每个方法在执行的同时都会创建一个栈帧（Stack Frame）用于存储局部变量表、操作数栈、动态链接、方法出口等信息。一个方法从调用到执行完成的过程，就对应着一个栈帧在虚拟机栈中入栈到出栈的过程。**局部变量表**存放了编译期可知的基本数据类型（boolean、byte、char、short、int、float、long、double）、对象引用（reference）和return Address类型。其中64位长度的long和double类型会占用2个局部变量空间（Slot），其余占用1个。局部变量表在编译期间完成分配，运行期间大小不会改变。在JVM规范中规定了两种异常：线程请求栈深度大于允许深度，抛出StackOverflowError异常；如果虚拟机栈扩展时无法申请到足够的内存，抛出OutOfMemoryError异常
@@ -315,7 +315,7 @@ GC发生时要让所有线程运行到安全点停顿下来，有两种方案：
 - 缺点：在单CPU的环境下绝对不会比Serial收集器有更好的效果，甚至由于存在线程交互的开销，该收集器在通过超线程技术实现两个CPU的环境中都不能保证比Serial收集器好。但随着CPU的增加，它的优点就越明显。
 - 它默认开启的线程数与CPU的数量相同，可以使用-XX：ParallelGCThreads参数来限制垃圾收集的线程数。
 
-![](http://static.oschina.net/uploads/space/2015/0811/220617_gHTm_2431292.png)
+![](http://7xkjk9.com1.z0.glb.clouddn.com/jvm-10.png)
 
 并行（Parallel）：指多条垃圾收集线程并行工作，但此时用户线程仍然处于等待状态；
 
@@ -325,7 +325,7 @@ GC发生时要让所有线程运行到安全点停顿下来，有两种方案：
 
 Parallel Scavenge收集器使用复制算法收集器，又是并行的多线程收集器。Parallel Scavenge收集器的目标是达到一个可控制的吞吐量（吞吐量=运行用户代码时间/（运行用户代码时间+垃圾收集时间））。Parallel Scavenge收集器提供了两个参数用于精准控制吞吐量，分别是控制最大垃圾收集停顿时间的-XX:MaxGCPauseMillis参数(x>0的毫秒数)以及直接设置吞吐量大小的-XX:GCTimeRatio参数(设置一个0<x<100的整数，表示垃圾收集器时间占总时间的比率，相当于吞吐量的倒数)。
 
-![](http://static.oschina.net/uploads/space/2015/0811/220738_gTa4_2431292.png)
+![](http://7xkjk9.com1.z0.glb.clouddn.com/jvm-11.jpg)
 
 **4、Serial Old收集器**
 
@@ -361,7 +361,7 @@ G1收集器是一款面向服务端应用的垃圾收集器，成熟版基于JDK
 - 空间整合：G1采用“标记-整理”算法实现收集器，着意味着G1运作期间不会产生内存空间碎片，收集后可提供规整的可用内存。
 - 可预测的停顿：建立可预测的停顿时间模型，能让使用者明确指定在一个长度为M毫秒的时间片段内，消耗在垃圾收集器上的时间不得超过N毫秒。
 
-![](http://static.oschina.net/uploads/space/2015/0811/225112_tkFZ_2431292.png)
+![](http://7xkjk9.com1.z0.glb.clouddn.com/jvm-13.jpg)
 
 8、垃圾收集器参数总结
 
