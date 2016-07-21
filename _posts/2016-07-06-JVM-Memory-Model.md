@@ -307,7 +307,7 @@ GC发生时要让所有线程运行到安全点停顿下来，有两种方案：
 - 缺点：serial收集器是一个单线程的收集器，但它的“单线程”的意义并不仅仅说明它只会使用一个CPU或一条收集线程去完成来及收集工作，更重要的是在它进行垃圾收集时，必须暂停其他所有的工作线程，直到它收集结束。
 - 优点：简单而高效，对于限定单个CPU的环境来说，Serial收集器由于没有线程交互的开销，专心做垃圾收集可以获得最高的单线程收集效率。因此Serial收集器对于运行在Client模式(默认Serial收集器)下的虚拟机来说是一个很好的选择。
 
-![](http://static.oschina.net/uploads/space/2015/0811/220554_JpwZ_2431292.png)
+![](http://7xkjk9.com1.z0.glb.clouddn.com/jvm-9.jpg)
 
 **2、ParNew收集器**
 
@@ -344,7 +344,7 @@ CMS（Concurrent Mark Sweep）收集器是一种以获取最短停顿时间为�
 - 重新标记(CMS remark):需要用户线程停顿，是为了修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间一般会比初始标记阶段稍长一些，但比并发标记要短。
 - 并发清除(CMS  concurrent sweep)：与用户线程一起工作
 
-![](http://static.oschina.net/uploads/space/2015/0811/222148_EFpl_2431292.png)
+![](http://7xkjk9.com1.z0.glb.clouddn.com/jvm-12.jpg)
 
 缺点：
 
