@@ -189,6 +189,14 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 }
 ```
 
+Spring容器中的bean可以分为5个范围。所有范围的名称都是自说明的，但是为了避免混淆，还是让我们来解释一下：
+
+1. singleton：这种bean范围是默认的，这种范围确保不管接受到多少个请求，每个容器中只有一个bean的实例，单例的模式由bean factory自身来维护。
+2. prototype：原形范围与单例范围相反，为每一个bean请求提供一个实例。
+3. request：在请求bean范围内会每一个来自客户端的网络请求创建一个实例，在请求完成以后，bean会失效并被垃圾回收器回收。
+4. Session：与请求范围类似，确保每个session中有一个bean的实例，在session过期后，bean会随之失效。
+5. global-session：global-session和Portlet应用相关。当你的应用部署在Portlet容器中工作时，它包含很多portlet。如果你想要声明让所有的portlet共用全局的存储变量的话，那么这全局变量需要存储在global-session中。
+
 #### Bean的解析
 
 Bean 的解析过程非常复杂，功能被分的很细，因为这里需要被扩展的地方很多，必须保证有足够的灵活性，以应对可能的变化。Bean 的解析主要就是对 Spring 配置文件的解析。这个解析过程主要通过下图中的类完成
@@ -443,13 +451,62 @@ public void preInstantiateSingletons() throws BeansException {
 
 ![](http://www.ibm.com/developerworks/cn/java/j-lo-spring-principle/origin_image014.png)
 
+#### 循环依赖
+
+循环依赖就是循环引用，就是两个或多个bean相互之间的持有对方。在Spring中将循环依赖的处理分成了3种情况。
+
+1、构造器循环依赖
+
+通过构造器注入构成的循环依赖，是无法解决的
+
+2、setter循环依赖
+
+- Spring容器创建单例“circleA” Bean，首先根据无参构造器创建Bean，并暴露一个“ObjectFactory ”用于返回一个提前暴露一个创建中的Bean，并将“circleA” 标识符放到“当前创建Bean池”；然后进行setter注入“circleB”；
+
+
+- Spring容器创建单例“circleB” Bean，首先根据无参构造器创建Bean，并暴露一个“ObjectFactory”用于返回一个提前暴露一个创建中的Bean，并将“circleB” 标识符放到“当前创建Bean池”，然后进行setter注入“circleC”；
+
+
+- Spring容器创建单例“circleC” Bean，首先根据无参构造器创建Bean，并暴露一个“ObjectFactory ”用于返回一个提前暴露一个创建中的Bean，并将“circleC” 标识符放到“当前创建Bean池”，然后进行setter注入“circleA”；进行注入“circleA”时由于提前暴露了“ObjectFactory”工厂从而使用它返回提前暴露一个创建中的Bean；
+
+
+- 最后在依赖注入“circleB”和“circleA”，完成setter注入。
+
+3、Prototype也范围的依赖处理
+
+对于“prototype”作用域Bean，Spring容器无法完成依赖注入，因为“prototype”作用域的Bean，Spring容器不进行缓存，因此无法提前暴露一个创建中的Bean。
+
 #### **Ioc 容器的扩展点**
 
-对 Spring 的 Ioc 容器来说，主要有这么几个。BeanFactoryPostProcessor， BeanPostProcessor。他们分别是在构建 BeanFactory 和构建 Bean 对象时调用。还有就是 InitializingBean 和 DisposableBean 他们分别是在 Bean 实例创建和销毁时被调用。用户可以实现这些接口中定义的方法，Spring 就会在适当的时候调用他们。还有一个是 FactoryBean 他是个特殊的 Bean，这个 Bean 可以被用户更多的控制。
+对 Spring 的 Ioc 容器来说，主要有这么几个。`BeanFactoryPostProcessor`， `BeanPostProcessor`。他们分别是在构建 BeanFactory 和构建 Bean 对象时调用。还有就是 InitializingBean 和 DisposableBean 他们分别是在 Bean 实例创建和销毁时被调用。用户可以实现这些接口中定义的方法，Spring 就会在适当的时候调用他们。还有一个是 FactoryBean 他是个特殊的 Bean，这个 Bean 可以被用户更多的控制。
+
+**BeanFactoryPostProcessor是在spring容器加载了bean的定义文件之后，在bean实例化之前执行的。接口方法的入参是ConfigurrableListableBeanFactory，使用该参数，可以获取到相关bean的定义信息**
+
+SpringConfig（lion）、SqlClientReplacer（读写Master/Slave）
+
+```java
+public interface BeanFactoryPostProcessor {
+    void postProcessBeanFactory(ConfigurableListableBeanFactory var1) throws BeansException;
+}
+```
+
+**BeanPostProcessor**，可以在**spring容器实例化bean之后**，在执行bean的初始化方法前后，添加一些自己的处理逻辑。这里说的初始化方法，指的是下面两种：1）bean实现了InitializingBean接口，对应的方法为afterPropertiesSet2）在bean定义的时候，通过init-method设置的方法
+
+**注意：BeanPostProcessor是在spring容器加载了bean的定义文件并且实例化bean之后执行的。BeanPostProcessor的执行顺序是在BeanFactoryPostProcessor之后。**
+
+BeanValidationPostProcessor、CommonAnnotationBeanPostProcessor、InitDestroyAnnotationBeanPostProcessor（@PostConstruct）
+
+```java
+public interface BeanPostProcessor {
+    Object postProcessBeforeInitialization(Object var1, String var2) throws BeansException;
+
+    Object postProcessAfterInitialization(Object var1, String var2) throws BeansException;
+}
+```
 
 
 
-#### 实践：Slave注解修改Bean
+#### BeanFactoryPostProcessor实践：Slave注解修改Bean
 
 通过@Slave注解可以替换DAO类中的SqlClient，实现主从库的轻松切换。实现方式即在Bean加载完时，通过BeanFactory获得所有的Bean的列表，判断是否有Slave注解，如果有，则替换。
 
@@ -498,6 +555,33 @@ public class SqlClientReplacer implements BeanFactoryPostProcessor, PriorityOrde
    }
 
 }
+```
+
+#### BeanFactoryPostProcessor实践：lion的SpringConfig
+
+```java
+public class SpringConfig extends InitializeConfig ;
+<bean name="placeholder" lazy-init="false" class="com.dianping.lion.client.SpringConfig">
+		<property name="propertiesPath" value="config/applicationContext.properties" />
+	</bean>
+  // 具体实现，看父类InitializeConfig，将${}中的字符串替换成配置
+  public class InitializeConfig implements BeanFactoryPostProcessor, PriorityOrdered, BeanNameAware, BeanFactoryAware {
+    private static Logger logger;
+    public static final String DEFAULT_PLACEHOLDER_PREFIX = "${";
+    public static final String DEFAULT_PLACEHOLDER_SUFFIX = "}";
+    private String placeholderPrefix = "${";
+    private String placeholderSuffix = "}";
+    private int order = 2147483647;
+    private BeanFactory beanFactory;
+    private String beanName;
+    private String nullValue = "";
+    protected String address;
+    private String environment;
+    private String propertiesPath;
+    private boolean includeLocalProps;
+    private Properties localProps;
+    private Map<String, List<BeanData>> propertyMap = new HashMap();
+  }
 ```
 
 
