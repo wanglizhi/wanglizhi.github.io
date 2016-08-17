@@ -81,6 +81,20 @@ ARP协议（Address Resolution Protocol）
 
 MAC地址是网卡决定的，是固定的。
 
+## RIP、OSPF、BGP认识
+
+　　路由信息协议（RoutingInformationProtocol，RIP）是一种使用最广泛的内部网关协议（IGP）。（IGP）是在内部网络上使用的路由协议(在少数情形下,也可以用于连接到因特网的网络)，它可以通过不断的交换信息让路由器动态的适应网络连接的变化，这些信息包括每个路由器可以到达哪些网络，这些网络有多远等，RIP属于网络层。
+
+　　开放式最短路径优先（OpenShortestPathFirst，OSPF）是对链路状态路由协议的一种实现，是大中型网络上使用最为广泛的IGP（InteriorGatewayProtocol）协议，运作于自治系统内部。著名的迪克斯加算法被用来计算最短路径树。它使用“代价（Cost）”作为路由度量。链路状态数据库（LSDB）用来保存当前网络拓扑结构，它在同一区域中的所有路由器上是相同的。
+
+　　BGP（边界网关协议，BorderGatewayProtocol）是自治系统之间的路由选择协议，是互联网上一个核心的去中心化自治路由协议。
+
+　　BGP是唯一一个用来处理像因特网大小的网络的协议，也是唯一能够妥善处理好不相关路由域间的多路连接的协议。BGP构建在EGP的经验之上。BGP系统的主要功能是和其他的BGP系统交换网络可达信息。网络可达信息包括列出的自治系统（AS）的信息。这些信息有效地构造了AS互联的拓朴图并由此清除了路由环路，同时在AS级别上可实施策略决策。
+
+## DNS
+
+　　DNS（DomainNameSystem，域名系统），因特网上作为域名和IP地址相互映射的一个分布式数据库，能够使用户更方便的访问互联网，而不用去记住能够被机器直接读取的IP数串。通过主机名，最终得到该主机名对应的IP地址的过程叫做域名解析（或主机名解析）。DNS协议运行在UDP协议之上，使用端口号53。
+
 ## TCP 和 UDP对比
 
 TCP对应的协议：FTP、Telnet、SMTP、POP3、HTTP
@@ -230,4 +244,6 @@ HTTP响应也由三部分组成：状态行、消息报头、响应正文
 [OSI七层模型及TCP/IP四层模型](http://www.cnblogs.com/commanderzhu/p/4821555.html)
 
 [TCP/IP基础](http://www.cnblogs.com/commanderzhu/p/4821556.html)
+
+[程序员的自我修养(2)——计算机网络](http://kb.cnblogs.com/page/211867/)
 
