@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "HTTP协议概览"
+title:      "HTTP协议详解"
 subtitle:   "Introduction to HTTP"
 date:       2018-05-20 23:30:00
 author:     "Wanglizhi"
@@ -187,9 +187,7 @@ HTTP/1.1停止了对keep-alive连接的支持，而使用了一种持久连接�
 
 ![](https://images2017.cnblogs.com/blog/983980/201712/983980-20171209135135136-1039612245.png)
 
-
-
-##Web服务器
+## Web服务器
 
 Web 服务器逻辑实现了 HTTP 协议、管理着 Web 资源，并负责提供 Web 服务器的管理功能。Web 服务器逻辑和操作系统共同负责管理 TCP 连接。底层操作系统负责管理底层计算机系统的硬件细节，并提供了 TCP/IP 网络支持、负责装载 Web 资源的文件系统以及控制当前计算活动的进程管理功能。
 
