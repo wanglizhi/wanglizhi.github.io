@@ -240,7 +240,7 @@ SSL握手主要完成的工作：
 - 对两端的身份进行认证
 - 生成临时的会话秘钥，以便加密信道，同时保证性能
 
-SSL支持双向证书，将服务器的证书承载会客户端，再讲客户端的证书会送给服务器。
+SSL支持双向证书，将服务器的证书承载会客户端，再将客户端的证书会送给服务器。
 
 ![](https://upload.wikimedia.org/wikipedia/commons/a/ae/SSL_handshake_with_two_way_authentication_with_certificates.svg)
 
@@ -296,11 +296,190 @@ public class URLTunnelReader {
 
 参考：[Implement HTTPS tunneling with JSSE](https://www.javaworld.com/article/2077475/core-java/java-tip-111--implement-https-tunneling-with-jsse.html)
 
-#### TLS1.1 VS TLS1.2
+#### TLS协议的发展
 
+SSL协议1.0版本发布于1995年，主要由网景公司开发，存在很多漏洞。后来在SSL3.0的基础上规范了TLS标准，1999年TLS1.0标准颁布，2006年TLS1.1颁布 改动不大是一个过渡版本；2008年发布TLS1.2，在互联网中长期占据主流标准得到广泛使用，TLS是保障网络传输安全最重要的安全标准之一。
 
+然而广泛的应用也使得TLS成为了攻击的“众矢之的”，这些攻击或利用TLS设计本身存在的不足（如幸运十三攻击[1]、三次握手攻击[2]、跨协议攻击 [3]等），或利用TLS所用密码原语本身的缺陷（如RC4加密 [4]、RSA-PKCS#1 v1.5加密 [5]等），或利用TLS实现库中的漏洞（如心脏出血攻击[6]等）。面对这一系列的攻击，一直以来我们采取的措施是“打补丁”，即针对新的攻击做新的修补。然而，由于TLS的应用规模过于庞大，不断地打补丁在如此大规模的实际应用中并不容易全面实施。除此之外，交互双方必须运行复杂的TLS握手协议才能开始传输信息，很多情况下我们希望在握手轮数和握手延迟方面可以有更多的选择。出于以上以及其他种种因素的考虑，IETF从2014年开始着手制定一个“clean”的TLS1.3。
+
+**TLS1.2的优化**
+
+密码学的发展导致MD5/SHA-1等哈希函数的安全性降低了，MD5甚至可以称为不安全的哈希函数必须被剔除掉。
+
+- PRF伪随机数生成函数中的MD5/SHA-1被替换为加密套件指定的RPF函数。
+- 需要做数字签名的元素（Element），签名由MD5/SHA-1组合方式替换为单个用户指定的Hash算法。
+- TLS_RSA_WITH_AES_128_CBC_SHA必须实现
+- 增加了HMAC-SHA256套件。
+- 删除了IDEA和DES加密套件
+
+增加了新的密码学操作类型 Authenticated Encryption，TLS1.1及以前包括四种密码学操作类型：
+
+A）数字签名  digital signing
+
+B）流加密      stream cipher encryption
+
+C）块加密      block cipher encryption
+
+D）公钥加密  public key encryption
+
+【TLS1.2】增补了一种
+
+E）authenticated encryption with additional data (AEAD) encryption。authenticated encryption是相对较新的概念，这种操作除了可以对数据加密，提供机密性之外还可以提供完整性和真实性（authenticity）检测。
+
+其他改动
+
+- 许多场景强制要发送Alert
+- 如果没有证书回应certificate_request，则Client必须回应一个空的证书列表
+
+#### TLS1.3
+
+TLS 1.3设计的第一个重要目标就是避免之前版本存在的缺陷，为此，一部分相关的改动如下：
+
+（1）禁止使用RSA密钥传输算法。
+
+（2）禁止一些安全性较弱的密码原语如MD5的使用。
+
+（3）不再支持重协商握手模式。
+
+（4）握手消息采取了加密操作。
+
+（5）实现了握手协议和记录协议的密钥分离。
+
+（6）实现了会话密钥与整个握手消息的绑定。
+
+（7）记录层只能使用AEAD（Authenticated Encryption with Additional Data）认证加密模式。
+
+TLS1.3最大的改动是握手模式的改动，可以极大地降低传输延迟。Round-Trip Time (RTT)表示一次握手的延迟。
+
+**TLS1.2的建立连接握手**：
+
+![](https://ws1.sinaimg.cn/large/44cd29dagy1fp6q9dlbabj20r20hq3z9.jpg)
+
+从图中可以看出，在发送应用数据之前，TLS安全传输需要2-RTT才能完成握手。如果是恢复会话，TLS1.2可以采用Session ID或Session Ticket进行快速握手：
+
+![](https://ws1.sinaimg.cn/large/44cd29dagy1fp6ox4fzlrj20r20de74s.jpg)
+
+从上图可以看到，在使用Session Ticket的情况下，需要1-RTT
+
+那么TLS1.3是如何进一步优化的呢？**TLS 1.3完全握手**：
+
+![](https://ws1.sinaimg.cn/large/44cd29dagy1fp6phygku8j20r20eiaak.jpg)
+
+在完全握手情况下，TLS 1.3需要1-RTT建立连接。与TLS1.2有两点不同：握手过程中移除了`ServerKeyExchange`和`ClientKeyExchange`, DH (Diffie-Hellman) 参数通过 `key_share` 传输。
+
+**TLS1.3恢复会话握手**
+
+![](https://ws1.sinaimg.cn/large/44cd29dagy1fp6pi76ohnj20r20km3zg.jpg)
+
+TLS1.3恢复会话可以直接发送加密后的应用数据，不需要额外的TLS握手。因此，我们常说的TLS1.3 0-RTT握手其实是指恢复加密传输层会话不需要额外的RTT。但是，在第一次进行完全握手时，是需要1-RTT的。与TLS1.2比较，无论是完全握手还是恢复会话，TLS1.3均比TLS1.2少1-RTT。因此，TLS1.3从被提上draft草案开始获得了各方面的好评。
+
+使用TLS最多的场景是HTTPS和HTTP/2. 以HTTP/2为例，一个完整的 HTTP Request需要经历的RTT如下：
+
+|              | HTTP/2 OVER TLS1.2首次连接 | HTTP/2 OVER TLS1.2连接复用 | HTTP/2 OVER TLS1.3首次连接 | HTTP/2 OVER TLS1.3连接复用 |
+| ------------ | -------------------------- | -------------------------- | -------------------------- | -------------------------- |
+| DNS解析      | 1-RTT                      | 0-RTT                      | 1-RTT                      | 0-RTT                      |
+| TCP握手      | 1-RTT                      | 0-RTT                      | 1-RTT                      | 0-RTT                      |
+| TLS握手      | 2-RTT                      | 1-RTT                      | 1-RTT                      | 0-RTT                      |
+| HTTP Request | 1-RTT                      | 1-RTT                      | 1-RTT                      | 1-RTT                      |
+| **总计**     | 5RTT                       | 2-RTT                      | 4-RTT                      | 1-RTT                      |
+
+1. 首次连接发起HTTP请求是非常昂贵的。因此，如果你是用HTTPS作一些不可告人的代理应用的话，一定尽量保持长连接，避免频繁建立新连接。
+2. 连接的multlplexing(多路复用)可以有效减少RTT次数，降低延迟。在连接复用的情况下，TLS1.3将整个http request的RTT降低到了1个，达到理论的最小值。
 
 ## HTTP 2.0
+
+2015 年 5 月：RFC 7540 (HTTP/2) 和 RFC 7541 (HPACK) 发布。HTTP/2 通过支持标头字段压缩和在同一连接上进行多个并发交换，让应用更有效地利用网络资源，减少感知的延迟时间。具体来说，它可以对同一连接上的请求和响应消息进行交错发送并为 HTTP 标头字段使用有效编码。 HTTP/2 还允许为请求设置优先级，让更重要的请求更快速地完成，从而进一步提升性能。出台的协议对网络更加友好，因为与 HTTP/1.x 相比，可以使用更少的 TCP 连接。
+
+#### 二进制分帧层
+
+HTTP/2 所有性能增强的核心在于新的二进制分帧层，它定义了如何封装 HTTP 消息并在客户端与服务器之间传输。
+
+![](http://www.alloyteam.com/wp-content/uploads/2015/03/http2.0.jpg)
+
+这里所谓的“层”，指的是位于套接字接口与应用可见的高级 HTTP API 之间一个经过优化的新编码机制：HTTP 的语义（包括各种动词、方法、标头）都不受影响，不同的是传输期间对它们的编码方式变了。HTTP/1.x 协议以换行符作为纯文本的分隔符，而 HTTP/2 将所有传输的信息分割为更小的消息和帧，并采用二进制格式对它们编码。这样一来，客户端和服务器为了相互理解，都必须使用新的二进制编码机制：HTTP/1.x 客户端无法理解只支持 HTTP/2 的服务器，反之亦然。
+
+HTTP 2.0 通信都在一个连接上完成，这个连接可以承载任意数量的双向数据流。相应地，每个数据流以消息的形式发送，而消息由一或多个帧组成，这些帧可以乱序发送，然后再根据每个帧首部的流标识符重新组装。
+
+新的二进制分帧机制改变了客户端与服务器之间交换数据的方式。 为了说明这个过程，我们需要了解 HTTP/2 的三个概念：
+
+- *数据流*：已建立的连接内的双向字节流，可以承载一条或多条消息。
+- *消息*：与逻辑请求或响应消息对应的完整的一系列帧。
+- *帧*：HTTP/2 通信的最小单位，每个帧都包含帧头，至少也会标识出当前帧所属的数据流。
+
+这些概念的关系总结如下：
+
+- 所有通信都在一个 TCP 连接上完成，此连接可以承载任意数量的双向数据流。
+- 每个数据流都有一个唯一的标识符和可选的优先级信息，用于承载双向消息。
+- 每条消息都是一条逻辑 HTTP 消息（例如请求或响应），包含一个或多个帧。
+- 帧是最小的通信单位，承载着特定类型的数据，例如 HTTP 标头、消息负载，等等。 来自不同数据流的帧可以交错发送，然后再根据每个帧头的数据流标识符重新组装。
+
+![](https://raw.githubusercontent.com/zqjflash/http2-protocol/master/http2-connect-stream.png)
+
+#### 请求与响应复用
+
+在 HTTP/1.x 中，如果客户端要想发起多个并行请求以提升性能，则必须使用多个 TCP 连接。这是 HTTP/1.x 交付模型的直接结果，该模型可以保证每个连接每次只交付一个响应（响应排队）。更糟糕的是，这种模型也会导致队首阻塞，从而造成底层 TCP 连接的效率低下。
+
+HTTP/2 中新的二进制分帧层突破了这些限制，实现了完整的请求和响应复用：客户端和服务器可以将 HTTP 消息分解为互不依赖的帧，然后交错发送，最后再在另一端把它们重新组装起来。
+
+![](https://raw.githubusercontent.com/zqjflash/http2-protocol/master/http2-request-more.png)
+
+快照捕捉了同一个连接内并行的多个数据流。客户端正在向服务器传输一个 `DATA` 帧（数据流 5），与此同时，服务器正向客户端交错发送数据流 1 和数据流 3 的一系列帧。因此，一个连接上同时有三个并行数据流。
+
+将 HTTP 消息分解为独立的帧，交错发送，然后在另一端重新组装是 HTTP 2 最重要的一项增强。
+
+- 并行交错地发送多个请求，请求之间互不影响。
+- 并行交错地发送多个响应，响应之间互不干扰。
+- 使用一个连接并行发送多个请求和响应。
+- 不必再为绕过 HTTP/1.x 限制而做很多工作（请参阅[针对 HTTP/1.x 进行优化](https://hpbn.co/optimizing-application-delivery/#optimizing-for-http1x)，例如级联文件、image sprites 和域名分片。
+- 消除不必要的延迟和提高现有网络容量的利用率，从而减少页面加载时间。
+- *等等…*
+
+#### 数据流优先级
+
+HTTP/2 标准允许每个数据流都有一个关联的权重和依赖关系：
+
+- 可以向每个数据流分配一个介于 1 至 256 之间的整数。
+- 每个数据流与其他数据流之间可以存在显式依赖关系。
+
+数据流依赖关系和权重的组合让客户端可以构建和传递“优先级树”，表明它倾向于如何接收响应。反过来，服务器可以使用此信息通过控制 CPU、内存和其他资源的分配设定数据流处理的优先级，在资源数据可用之后，带宽分配可以确保将高优先级响应以最优方式传输至客户端。
+
+#### 流控制
+
+**所有 HTTP/2 连接都是永久的，而且仅需要每个来源一个连接**，随之带来诸多性能优势。
+
+流控制是一种阻止发送方向接收方发送大量数据的机制，以免超出后者的需求或处理能力。由于 HTTP/2 数据流在一个 TCP 连接内复用，TCP 流控制既不够精细，也无法提供必要的应用级 API 来调节各个数据流的传输。为了解决这一问题，HTTP/2 提供了一组简单的构建块，这些构建块允许客户端和服务器实现其自己的数据流和连接级流控制：
+
+- 流控制具有方向性。每个接收方都可以根据自身需要选择为每个数据流和整个连接设置任意的窗口大小。
+- 流控制基于信用。每个接收方都可以公布其初始连接和数据流流控制窗口（以字节为单位），每当发送方发出 `DATA`帧时都会减小，在接收方发出 `WINDOW_UPDATE` 帧时增大。
+- 流控制无法停用。建立 HTTP/2 连接后，客户端将与服务器交换 `SETTINGS` 帧，这会在两个方向上设置流控制窗口。流控制窗口的默认值设为 65,535 字节，但是接收方可以设置一个较大的最大窗口大小（`2^31-1` 字节），并在接收到任意数据时通过发送 `WINDOW_UPDATE` 帧来维持这一大小。
+- 流控制为逐跃点控制，而非端到端控制。即，可信中介可以使用它来控制资源使用，以及基于自身条件和启发式算法实现资源分配机制。
+
+#### 服务器推送
+
+HTTP/2 打破了严格的请求-响应语义，支持一对多和服务器发起的推送工作流，在浏览器内外开启了全新的互动可能性。这是一项使能功能，对我们思考协议、协议用途和使用方式具有重要的长期影响。
+
+![](https://raw.githubusercontent.com/zqjflash/http2-protocol/master/http2-server-push.png)
+
+所有服务器推送数据流都由 `PUSH_PROMISE` 帧发起，表明了服务器向客户端推送所述资源的意图，并且需要先于请求推送资源的响应数据传输。这种传输顺序非常重要：客户端需要了解服务器打算推送哪些资源，以免为这些资源创建重复请求。满足此要求的最简单策略是先于父响应（即，`DATA` 帧）发送所有 `PUSH_PROMISE` 帧，其中包含所承诺资源的 HTTP 标头。
+
+在客户端接收到 `PUSH_PROMISE` 帧后，它可以根据自身情况选择拒绝数据流（通过 `RST_STREAM` 帧）。
+
+推送的每个资源都是一个数据流，与内嵌资源不同，客户端可以对推送的资源逐一复用、设定优先级和处理。 浏览器强制执行的唯一安全限制是，推送的资源必须符合原点相同这一政策：服务器对所提供内容必须具有权威性。
+
+#### 首部压缩
+
+每个 HTTP 传输都承载一组标头，这些标头说明了传输的资源及其属性。 在 HTTP/1.x 中，此元数据始终以纯文本形式，通常会给每个传输增加 500–800 字节的开销。如果使用 HTTP Cookie，增加的开销有时会达到上千字节。为了减少此开销和提升性能，HTTP/2 使用 HPACK 压缩格式压缩请求和响应标头元数据，这种格式采用两种简单但是强大的技术：
+
+1. 这种格式支持通过静态 Huffman 代码对传输的标头字段进行编码，从而减小了各个传输的大小。
+2. 这种格式要求客户端和服务器同时维护和更新一个包含之前见过的标头字段的索引列表（换句话说，它可以建立一个共享的压缩上下文），此列表随后会用作参考，对之前传输的值进行有效编码。
+
+利用 Huffman 编码，可以在传输时对各个值进行压缩，而利用之前传输值的索引列表，我们可以通过传输索引值的方式对重复值进行编码，索引值可用于有效查询和重构完整的标头键值对。
+
+![](https://raw.githubusercontent.com/zqjflash/http2-protocol/master/http2-header-diff.png)
+
+作为一种进一步优化方式，HPACK 压缩上下文包含一个静态表和一个动态表：静态表在规范中定义，并提供了一个包含所有连接都可能使用的常用 HTTP 标头字段（例如，有效标头名称）的列表；动态表最初为空，将根据在特定连接内交换的值进行更新。因此，为之前未见过的值采用静态 Huffman 编码，并替换每一侧静态表或动态表中已存在值的索引，可以减小每个请求的大小。
+
+注：在 HTTP/2 中，请求和响应标头字段的定义保持不变，仅有一些微小的差异：所有标头字段名称均为小写，请求行现在拆分成各个 `:method`、`:scheme`、`:authority` 和 `:path` 伪标头字段。
 
 
 
@@ -315,3 +494,20 @@ public class URLTunnelReader {
 [深入理解Session和Cookie](http://wanglizhi.github.io/2016/06/01/Session-Cookie/)
 
 [数据包结构分析](https://blog.csdn.net/cjf1002361126/article/details/70232721)
+
+[**tls1-3-quic-是怎样做到-0-rtt-的**](https://liudanking.com/network/tls1-3-quic-%E6%98%AF%E6%80%8E%E6%A0%B7%E5%81%9A%E5%88%B0-0-rtt-%E7%9A%84/) 
+
+[HTTP2.0 详解](https://github.com/zqjflash/http2-protocol/blob/master/README.md)
+
+[HTTP2 简介 Google](https://developers.google.com/web/fundamentals/performance/http2/?hl=zh-cn)
+
+[1]AlFardan N J, Paterson K G. Lucky thirteen: Breaking the TLS and DTLS record protocols [C]. Proceedings of 2013 IEEE Symposium on Security and Privacy (S&P), 2013. 526–540.
+
+[2]Bhargavan K, Lavaud A D, Fournet C, et al. Triple handshakes and cookie cutters: Breaking and fixing authentication over TLS [C]. Proceedings of 2014 IEEE Symposium on Security and Privacy (S&P), 2014. 98–113.
+
+[3]Mavrogiannopoulos N, Vercauteren F, Velichkov V, et al. A cross-protocol attack on the TLS protocol[C]//Proceedings of the 2012 ACM conference on Computer and communications security. ACM, 2012: 62-72.
+
+[4]AlFardan N J, Bernstein D J, Paterson K G, et al. On the Security of RC4 in TLS [C]. Proceedings of 22nd USENIX Security Symposium, 2013. 305–320.
+
+[5]Bleichenbacher D. Chosen ciphertext attacks against protocols based on the RSA encryption standard PKCS #1 [C]. Advances in Cryptology—CRYPTO’98, 1998. 1–12.
+
